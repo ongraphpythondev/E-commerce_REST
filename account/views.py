@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from twilio.rest import Client
+import os
 # Create your views here.
 
 
@@ -9,9 +10,8 @@ from twilio.rest import Client
 def login(request):
     if request.method == "POST":
         mobile = request.POST["mobile"]
-        print(mobile)
-        account_sid = "AC796220b91d3780f0783e40474c9dea67"
-        auth_token = "2da75293af496540050556c2358ebbf5"
+        account_sid = os.environ.get("account_sid") 
+        auth_token = os.environ.get("auth_token") 
         client = Client(account_sid, auth_token)
 
         message = client.messages \
