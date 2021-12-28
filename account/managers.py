@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, mobile, password, **extra_fields):
+        print("jjj")
         if not mobile:
             raise ValueError(_('The Mobile no. must be set'))
         user = self.model(mobile=mobile, **extra_fields)
