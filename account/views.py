@@ -9,7 +9,8 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 from django.contrib.auth import login , logout
-from django.contrib.auth.mixins import LoginRequiredMixin
+from rest_framework.permissions import IsAuthenticated
+
 
 
 import random
@@ -157,14 +158,23 @@ class Login(APIView):
             return Response({"status":"User logged in succesfully"}, status=status.HTTP_200_OK)
         
         # if user is not active so user must enter otp for it
-        generate_otp(mobile)
+        otp = generate_otp(mobile)
+        if otp == "NOT OK" :
+            return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # setting session
+        request.session['otp'] = otp
+        request.session['mobile'] = mobile
         return Response({"status":"Please enter OTP to login "}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
 class Logout( APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
-        
+        user = request.user
+        user.is_active = False
+        user.save()
         logout(request)
         return Response({"status":"User logout succesfully"}, status=status.HTTP_200_OK)
 

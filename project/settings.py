@@ -135,4 +135,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.CustomUser'
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        # 'rest_framework.permissions.IsAuthenticated', 
+    )
+}
+
+
 # flYq5BrMPJwuIoRtLjDbhGG22-LEH_Kvq6Z6i7a1
