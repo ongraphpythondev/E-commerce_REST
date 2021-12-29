@@ -2,6 +2,9 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
+    path('register', Register.as_view() ),
+    path('verify', Verify.as_view() ),
+    path('resend_otp', ResendOTP.as_view() ),
     path('login', Login.as_view() ),
-    path('verify/<int:user_pk>', Verify.as_view() ),
+    path('logout', Logout.as_view() ),
 ]

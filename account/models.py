@@ -1,4 +1,3 @@
-from typing import DefaultDict
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -8,14 +7,14 @@ from .managers import CustomUserManager
 
 
 class CustomUser(AbstractUser):
-    username = None
     mobile = models.IntegerField(_('phone no.'), unique=True)
-    otp = models.CharField(max_length=4)
+    username = models.CharField(max_length=30, unique=True)
     is_verified = models.BooleanField(default=False)
     image = models.FileField(upload_to = 'account/static/account/image' , null=True)
+    is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'mobile'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     objects = CustomUserManager()
 

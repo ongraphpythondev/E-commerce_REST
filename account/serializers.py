@@ -2,24 +2,19 @@ from rest_framework import serializers
 from .models import *
 
 
-class UserSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = '__all__' 
+        fields = ['mobile','username']
 
-    # creating user
-    def create(self, validated_data):
+    # def create(self, validated_data):
+    #     mobile = validated_data["mobile"]
+    #     user = CustomUser.objects.filter(mobile = mobile).first()
+    #     if user:
+    #         if user.is_verified:
+    #             return "user"
+    #     return CustomUser.objects.create(**validated_data)
 
-
-        user = CustomUser.objects.create(
-            mobile=validated_data['mobile'],
-            otp=validated_data['otp'],
-        )
-
-        user.set_password(validated_data['password'])
-        user.save()
-
-        return user
 
     # velidation 
     def validate(self, data):
@@ -27,4 +22,23 @@ class UserSerializer(serializers.ModelSerializer):
         # checking mobile no. is of 10 digit
         if len(str(data["mobile"])) != 10:
             raise serializers.ValidationError("Enter correct mobile number")
+
+        
+        if len(data["username"]) > 30 and len(data["username"]) < 4 :
+            raise serializers.ValidationError("Enter Proper name")
+            
+        return data
+
+class LoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['mobile']
+
+    # velidation 
+    def validate(self, data):
+
+        # checking mobile no. is of 10 digit
+        if len(str(data["mobile"])) != 10:
+            raise serializers.ValidationError("Enter correct mobile number")
+            
         return data
