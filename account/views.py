@@ -1,6 +1,4 @@
 from django.shortcuts import render , redirect
-from django.http import HttpResponse
-from rest_framework.serializers import Serializer
 from twilio.rest import Client
 import os
 from rest_framework.views import APIView
@@ -10,6 +8,8 @@ from .serializers import *
 from .models import *
 from django.contrib.auth import login , logout
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
 
 
 
@@ -82,7 +82,6 @@ class Verify(APIView):
         userotp = request.data["otp"]
         sessionotp = request.session.get("otp")
         sessionmobile = request.session.get("mobile")
-        print(sessionotp , userotp , sessionmobile)
 
         # validation
         if not userotp:
@@ -105,13 +104,16 @@ class Verify(APIView):
         user.save()
 
         # login user
-        login(request , user)
+        token , created = Token.objects.get_or_create(user=user)
 
         # delete sessions
         del request.session['otp']
         del request.session['mobile']
 
-        return Response({"success":"User succesfully verified and login"}, status=status.HTTP_200_OK)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk
+        }, status=status.HTTP_200_OK)
 
 
 class ResendOTP(APIView):
@@ -144,7 +146,7 @@ class Login(APIView):
             return Response({"error":"Enter valid mobile no."}, status=status.HTTP_400_BAD_REQUEST)
             
         # user object
-        user = CustomUser.objects.get(mobile = mobile)
+        user = CustomUser.objects.filter(mobile = mobile).first()
         if not user:
             return Response({"error":"User not found please create account first"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,8 +156,12 @@ class Login(APIView):
 
         # checking that no. is active 
         if user.is_active:
-            login(request , user)
-            return Response({"status":"User logged in succesfully"}, status=status.HTTP_200_OK)
+            # login(request , user)
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user_id': user.pk
+                }, status=status.HTTP_200_OK)
         
         # if user is not active so user must enter otp for it
         otp = generate_otp(mobile)
@@ -170,12 +176,14 @@ class Login(APIView):
 
 
 class Logout( APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    def get(self, request):
+    def post(self, request):
         user = request.user
         user.is_active = False
         user.save()
+        request.user.auth_token.delete()
         logout(request)
-        return Response({"status":"User logout succesfully"}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
 

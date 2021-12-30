@@ -7,15 +7,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['mobile','username']
 
-    # def create(self, validated_data):
-    #     mobile = validated_data["mobile"]
-    #     user = CustomUser.objects.filter(mobile = mobile).first()
-    #     if user:
-    #         if user.is_verified:
-    #             return "user"
-    #     return CustomUser.objects.create(**validated_data)
-
-
     # velidation 
     def validate(self, data):
 
