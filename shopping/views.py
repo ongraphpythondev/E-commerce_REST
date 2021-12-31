@@ -5,13 +5,33 @@ from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from django.shortcuts import render , redirect
+from rest_framework import viewsets
+
+
 # Create your views here.
 
-class Home(APIView):
+class Product(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self , request):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products , many = True)
-        return Response({"Products":serializer.data} , status=status.HTTP_200_OK)
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+
+
+class Category(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+
+
+class Feedback(viewsets.ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = FeedbackSerializer
+    queryset = Feedback.objects.all()
+ 
+
