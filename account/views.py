@@ -1,4 +1,5 @@
 from django.shortcuts import render , redirect
+from rest_framework import permissions
 from twilio.rest import Client
 import os
 from rest_framework.views import APIView
@@ -9,7 +10,11 @@ from .models import *
 from django.contrib.auth import login , logout
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
+# from rest_framework.authentication import TokenAuthentication
+from knox.views import LoginView as KnoxLoginView , LogoutView
+from knox.auth import TokenAuthentication
+from knox.models import AuthToken
+
 
 
 
@@ -124,6 +129,7 @@ class ResendOTP(APIView):
 
 
 class Login(APIView):
+    permission_classes = (permissions.AllowAny,)
     def post(self, request):
         
         # getting data
@@ -154,34 +160,41 @@ class Login(APIView):
         if not user.is_verified:
             return Response({"error":"User not verify please verify it"}, status=status.HTTP_400_BAD_REQUEST)
 
+        login(request , user)
+        
+        return Response({
+            "token": AuthToken.objects.create(user)[1],
+            'user_id': user.pk
+            }, status=status.HTTP_200_OK)
+
+        # return super().post(request , format=None)
+
+
+
         # checking that no. is active 
         # if user.is_active:
             # login(request , user)
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'user_id': user.pk
-            }, status=status.HTTP_200_OK)
+        # token, created = Token.objects.get_or_create(user=user)
+
+
         
         # if user is not active so user must enter otp for it
-        otp = generate_otp(mobile)
-        if otp == "NOT OK" :
-            return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
+        # otp = generate_otp(mobile)
+        # if otp == "NOT OK" :
+        #     return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
             
-        # setting session
-        return Response({"otp":f"{otp} sended to your mobile phone"}, status=status.HTTP_400_BAD_REQUEST)
+        # # setting session
+        # return Response({"otp":f"{otp} sended to your mobile phone"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
-class Logout( APIView):
-    authentication_classes = [TokenAuthentication]
+class Logout(LogoutView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         user = request.user
+        print(user)
         user.is_active = False
         user.save()
-        request.user.auth_token.delete()
-        logout(request)
-        return Response(status=status.HTTP_200_OK)
+        return super().post(request , format=None)
 
 

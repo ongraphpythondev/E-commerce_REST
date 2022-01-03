@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import environ    #this is used for environment variable command=  pip install django-environ
 import os
+from datetime import timedelta
+
 
 # Initialise environment variables
 environ.Env.read_env()
@@ -44,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'rest_framework',
-    'rest_framework.authtoken',
+    'knox',
     'shopping',
 ]
 
@@ -140,7 +142,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.CustomUser'
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication', ),
+# } 
 
+
+# REST_KNOX = {
+#   'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
+#   'AUTH_TOKEN_CHARACTER_LENGTH': 64,
+#   'TOKEN_TTL': timedelta(hours=10),
+#   'USER_SERIALIZER': 'account.serializers.LoginSerializer',
+#   'TOKEN_LIMIT_PER_USER': None,
+#   'AUTO_REFRESH': False,
+# }
 
 
 # flYq5BrMPJwuIoRtLjDbhGG22-LEH_Kvq6Z6i7a1
