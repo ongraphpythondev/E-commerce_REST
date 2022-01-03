@@ -28,30 +28,26 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ["price", "name" , "image","specification","stock","available","discount","created_by","category" , "feedback" ]
 
 
+class CartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
+        fields = "__all__"
 
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = "__all__"
+
+    
     # velidation 
-    # def validate(self, data):
+    def validate(self, data):
 
-    #     # checking mobile no. is of 10 digit
-    #     if len(str(data["mobile"])) != 10:
-    #         raise serializers.ValidationError("Enter correct mobile number")
-
+        # checking stock is available or not
+        product = Product.objects.filter(id = data["product"].id).first()
+        if product.stock == 0:
+            raise serializers.ValidationError("Item is out of stock")
         
-    #     if len(data["username"]) > 30 and len(data["username"]) < 4 :
-    #         raise serializers.ValidationError("Enter Proper name")
-            
-    #     return data
+        return data
 
-# class LoginSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CustomUser
-#         fields = ['mobile']
 
-#     # velidation 
-#     def validate(self, data):
-
-#         # checking mobile no. is of 10 digit
-#         if len(str(data["mobile"])) != 10:
-#             raise serializers.ValidationError("Enter correct mobile number")
-            
-#         return data

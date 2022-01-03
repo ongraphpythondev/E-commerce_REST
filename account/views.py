@@ -162,10 +162,19 @@ class Login(APIView):
 
         login(request , user)
         
+        # return Response({
+        #     "token": AuthToken.objects.create(user)[1],
+        #     'user_id': user.pk
+        #     }, status=status.HTTP_200_OK)
+        
+        token , created = Token.objects.get_or_create(user=user)
+        user.is_verified  =True
+        user.is_active = True
+        user.save()
         return Response({
-            "token": AuthToken.objects.create(user)[1],
-            'user_id': user.pk
-            }, status=status.HTTP_200_OK)
+                    'token': token.key,
+                    'user_id': user.pk
+                }, status=status.HTTP_200_OK)
 
         # return super().post(request , format=None)
 

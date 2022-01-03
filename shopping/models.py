@@ -36,4 +36,22 @@ class Feedback(models.Model):
     def __str__(self):
         return str(self.product)
 
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='cart', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='cart', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+
+    def __str__(self):
+        return str(self.product)
+
+
+class Order(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='order', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name='order', on_delete=models.CASCADE)
+    delivered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return str(self.product)
