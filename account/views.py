@@ -1,16 +1,12 @@
 from django.shortcuts import render , redirect
 from rest_framework import permissions
 from twilio.rest import Client
-import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
 from .models import *
-from django.contrib.auth import login , logout
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authtoken.models import Token
-# from rest_framework.authentication import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView , LogoutView
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
@@ -45,41 +41,6 @@ def generate_otp(mobile_no ):
     except: 
         return "NOT OK"
 
-
-# class Register(APIView):
-#     def post(self, request):
-        
-#         mobile = request.data["mobile"]
-#         user = CustomUser.objects.filter(mobile = mobile).first()
-#         if user:
-#             if user.is_verified:
-#                 return Response({"status":"User has already account"}, status=status.HTTP_400_BAD_REQUEST)
-#             else:
-#                 otp = generate_otp(mobile)
-#                 if otp == "NOT OK" :
-#                     return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
-            
-#                 serializer = OTPSerializer(data = )
-
-#                 return Response({"status":"OTP sended to mobile please verify"}, status=status.HTTP_201_CREATED)
-#         serializer = RegisterSerializer(data = request.data)
-#         if serializer.is_valid():
-            
-#             otp = generate_otp(request.data["mobile"] )
-            
-#             if otp == "NOT OK" :
-#                 return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
-            
-#             request.session['otp'] = otp
-#             request.session['mobile'] = request.data["mobile"]
-#             serializer.save()
-
-
-#             return Response({"data":serializer.data , "status":"OTP sended to mobile please verify"}, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
 class Verify(APIView):
     def post(self, request):
         # getting otp
@@ -90,14 +51,15 @@ class Verify(APIView):
         if user:
             data = Otp.objects.filter(user = user , otp = otp).filter()
             if data:
-                token , created = Token.objects.get_or_create(user=user)
                 user.is_verified  =True
                 user.is_active = True
                 user.save()
                 return Response({
-                    'token': token.key,
-                    'user_id': user.pk
-                }, status=status.HTTP_200_OK)
+                    "token": AuthToken.objects.create(user)[1],
+                    'user_id': user.pk,
+                    "mobile no.": user.mobile
+                    }, status=status.HTTP_201_CREATED)
+        
             else:
                 return Response({"error":"Please enter correct otp"}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -125,11 +87,13 @@ class ResendOTP(APIView):
         else:
             return Response({"status":"user not found"}, status=status.HTTP_200_OK)
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
-
-class Login(APIView):
+class Login(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
+
     def post(self, request):
         
         # getting data
@@ -160,44 +124,21 @@ class Login(APIView):
         if not user.is_verified:
             return Response({"error":"User not verify please verify it"}, status=status.HTTP_400_BAD_REQUEST)
 
-        login(request , user)
-        
-        # return Response({
-        #     "token": AuthToken.objects.create(user)[1],
-        #     'user_id': user.pk
-        #     }, status=status.HTTP_200_OK)
-        
-        token , created = Token.objects.get_or_create(user=user)
+        # login(request , user)
         user.is_verified  =True
         user.is_active = True
         user.save()
-        return Response({
-                    'token': token.key,
-                    'user_id': user.pk
-                }, status=status.HTTP_200_OK)
-
-        # return super().post(request , format=None)
-
-
-
-        # checking that no. is active 
-        # if user.is_active:
-            # login(request , user)
-        # token, created = Token.objects.get_or_create(user=user)
-
-
         
-        # if user is not active so user must enter otp for it
-        # otp = generate_otp(mobile)
-        # if otp == "NOT OK" :
-        #     return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        # # setting session
-        # return Response({"otp":f"{otp} sended to your mobile phone"}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({
+            "token": AuthToken.objects.create(user)[1],
+            'user_id': user.pk,
+            "mobile no.": user.mobile
+            }, status=status.HTTP_201_CREATED)
+        
 
 
 class Logout(LogoutView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     def post(self, request):
         user = request.user

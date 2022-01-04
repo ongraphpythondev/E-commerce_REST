@@ -5,11 +5,11 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
+# from rest_framework.authentication import TokenAuthentication
 from django.shortcuts import render , redirect
 from rest_framework import viewsets
 from django.db.models import Q  
-# from knox.auth import TokenAuthentication
+from knox.auth import TokenAuthentication
 
 
 

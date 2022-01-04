@@ -143,19 +143,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.CustomUser'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication', ),
-# } 
-
-
-# REST_KNOX = {
-#   'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
-#   'AUTH_TOKEN_CHARACTER_LENGTH': 64,
-#   'TOKEN_TTL': timedelta(hours=10),
-#   'USER_SERIALIZER': 'account.serializers.LoginSerializer',
-#   'TOKEN_LIMIT_PER_USER': None,
-#   'AUTO_REFRESH': False,
-# }
 
 
 # flYq5BrMPJwuIoRtLjDbhGG22-LEH_Kvq6Z6i7a1
