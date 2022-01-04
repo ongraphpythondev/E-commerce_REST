@@ -90,16 +90,11 @@ class Addorder(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self , request , pk = None):
-        if pk == None:
-            pass
-
-        cart = Cart.objects.filter(pk = pk).first()
-        if not cart:
-            return Response({"status":f"cart not found"} , status=status.HTTP_404_NOT_FOUND)
 
         pay_on_delivery = False
         bank = None
         emi = False
+
         if request.data.get("bank") :
             bank = Bank.objects.filter(bank = request.data.get("bank")).first() 
             bank = bank.pk
@@ -112,6 +107,34 @@ class Addorder(APIView):
         else:
             return Response({"status":f"Choose at least one of them ( bank or pay on delivery )"} , status=status.HTTP_403_FORBIDDEN)
 
+
+        if pk == None: 
+
+            totalcost = 0
+            cart = Cart.objects.filter(user = request.user)
+            if len(cart) == 0:
+                return Response({"status":f"No cart to order"} , status=status.HTTP_404_NOT_FOUND)
+            for cartobj in cart:
+                data = {
+                    "user": request.user.pk,
+                    "product" : cartobj.product.pk,
+                    "pay_on_delivery" : pay_on_delivery,
+                    "bank":bank,
+                    "emi" : emi
+                }
+                serializer = OrderSerializer(data = data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                cartobj.delete()
+                totalcost += serializer.validated_data.get('discounted_price')
+            
+            return Response({"status":f"{totalcost} Rs. is paid by customer"} , status=status.HTTP_201_CREATED)
+
+        cart = Cart.objects.filter(pk = pk).first()
+        if not cart:
+            return Response({"status":f"cart not found"} , status=status.HTTP_404_NOT_FOUND)
+
+        
         data = {
                 "user": request.user.pk,
                 "product" : cart.product.pk,
@@ -123,7 +146,7 @@ class Addorder(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         cart.delete()
-        return Response({"status":f"{serializer.validated_data.get('discounted_price')} Rs. is paid from customer"} , status=status.HTTP_201_CREATED)
+        return Response({"status":f"{serializer.validated_data.get('discounted_price')} Rs. is paid by customer"} , status=status.HTTP_201_CREATED)
 
 
 class FindProduct(APIView):

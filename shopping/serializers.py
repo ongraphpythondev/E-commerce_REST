@@ -56,14 +56,18 @@ class OrderSerializer(serializers.ModelSerializer):
 
         cost = 0
         if data.get("bank"):
+            bank = Bank.objects.filter(bank = data.get("bank")).first()
             if data.get("emi") == True:
                 cost = product.price  * 1.2
             else:
-                cost = product.price  * 0.8
+                cost = product.price  * ( bank.discount + 100 ) /100
         if data.get("pay_on_delivery") == True:
             cost = product.price
 
+        
         data["discounted_price"] = cost
+        product.stock -= 1
+        product.save()
         return data
 
 
