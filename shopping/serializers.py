@@ -60,7 +60,7 @@ class OrderSerializer(serializers.ModelSerializer):
             if data.get("emi") == True:
                 cost = product.price  * 1.2
             else:
-                cost = product.price  * ( bank.discount + 100 ) /100
+                cost = product.price  * ( 100 - bank.discount  ) /100
         if data.get("pay_on_delivery") == True:
             cost = product.price
 
