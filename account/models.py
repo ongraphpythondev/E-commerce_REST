@@ -8,7 +8,8 @@ from .managers import CustomUserManager
 
 class CustomUser(AbstractUser):
     mobile = models.IntegerField(_('phone no.'), unique=True)
-    username = models.CharField(max_length=30)
+    username = models.CharField(max_length=30, null=True)
+    address = models.CharField(max_length=500, null=True)
     is_verified = models.BooleanField(default=False)
     image = models.FileField(upload_to = 'account/static/account/image' , null=True)
     is_active = models.BooleanField(default=False)

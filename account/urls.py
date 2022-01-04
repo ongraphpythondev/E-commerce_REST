@@ -7,4 +7,5 @@ urlpatterns = [
     path('resend_otp', ResendOTP.as_view() ),
     path('login', Login.as_view() ),
     path('logout', Logout.as_view() ),
+    path('profile', Profile.as_view() ),
 ]

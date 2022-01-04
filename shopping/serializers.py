@@ -1,5 +1,7 @@
 from django.db.models.query import QuerySet
 from rest_framework import serializers
+
+from account.models import CustomUser
 from .models import *
 
 
@@ -44,10 +46,24 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, data):
 
         # checking stock is available or not
-        product = Product.objects.filter(id = data["product"].id).first()
+        product = Product.objects.filter(pk = data["product"].pk).first()
         if product.stock == 0:
             raise serializers.ValidationError("Item is out of stock")
-        
+
+        user = CustomUser.objects.filter(pk = data["user"].pk).first()
+        if user.address == None:
+            raise serializers.ValidationError("Please enter the address before order")
+
+        cost = 0
+        if data.get("bank"):
+            if data.get("emi") == True:
+                cost = product.price  * 1.2
+            else:
+                cost = product.price  * 0.8
+        if data.get("pay_on_delivery") == True:
+            cost = product.price
+
+        data["discounted_price"] = cost
         return data
 
 

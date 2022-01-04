@@ -41,55 +41,6 @@ def generate_otp(mobile_no ):
     except: 
         return "NOT OK"
 
-class Verify(APIView):
-    def post(self, request):
-        # getting otp
-        otp = request.data["otp"]
-        mobile = request.data["mobile"]
-
-        user = CustomUser.objects.filter(mobile=mobile).first()
-        if user:
-            data = Otp.objects.filter(user = user , otp = otp).filter()
-            if data:
-                user.is_verified  =True
-                user.is_active = True
-                user.save()
-                return Response({
-                    "token": AuthToken.objects.create(user)[1],
-                    'user_id': user.pk,
-                    "mobile no.": user.mobile
-                    }, status=status.HTTP_201_CREATED)
-        
-            else:
-                return Response({"error":"Please enter correct otp"}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"error":"User not found"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ResendOTP(APIView):
-    def post(self, request):
-        mobile = request.data["mobile"]
-        # validation
-        if not mobile or len(str(mobile)) != 10:
-            return Response({"error":"please enter mobile no."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        otp = generate_otp(mobile)
-        
-        if otp == "NOT OK" :
-            return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
-            
-        user = CustomUser.objects.filter(mobile = mobile).first()
-        if user:
-            otpobj = Otp.objects.filter(user = user).first()
-            otpobj.otp = otp
-            otpobj.save()
-            return Response({"status":f"{otp} OTP resended to mobile please verify"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"status":"user not found"}, status=status.HTTP_200_OK)
-
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
 
 class Login(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
@@ -137,14 +88,78 @@ class Login(KnoxLoginView):
         
 
 
+class Verify(APIView):
+    def post(self, request):
+        # getting otp
+        otp = request.data["otp"]
+        mobile = request.data["mobile"]
+
+        user = CustomUser.objects.filter(mobile=mobile).first()
+        if user:
+            data = Otp.objects.filter(user = user , otp = otp).filter()
+            if data:
+                user.is_verified  =True
+                user.is_active = True
+                user.save()
+                return Response({
+                    "token": AuthToken.objects.create(user)[1],
+                    'user_id': user.pk,
+                    "mobile no.": user.mobile
+                    }, status=status.HTTP_201_CREATED)
+        
+            else:
+                return Response({"error":"Please enter correct otp"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error":"User not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResendOTP(APIView):
+    def post(self, request):
+        mobile = request.data["mobile"]
+        # validation
+        if not mobile or len(str(mobile)) != 10:
+            return Response({"error":"please enter mobile no."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        otp = generate_otp(mobile)
+        
+        if otp == "NOT OK" :
+            return Response({"status":"something went wrong please try again"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = CustomUser.objects.filter(mobile = mobile).first()
+        if user:
+            otpobj = Otp.objects.filter(user = user).first()
+            otpobj.otp = otp
+            otpobj.save()
+            return Response({"status":f"{otp} OTP resended to mobile please verify"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"status":"user not found"}, status=status.HTTP_200_OK)
+
+
+
 class Logout(LogoutView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     def post(self, request):
         user = request.user
-        print(user)
         user.is_active = False
         user.save()
         return super().post(request , format=None)
+
+
+
+class Profile(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self , request):
+        serializer = ProfileSerializer(request.user)
+        return Response({"user":serializer.data},status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        serializer = ProfileSerializer(request.user , data = request.data , partial = True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"status":"User profile updated "},  status=status.HTTP_201_CREATED)
 
 

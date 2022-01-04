@@ -89,22 +89,41 @@ class Addorder(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def post(self , request , pk):
+    def post(self , request , pk = None):
+        if pk == None:
+            pass
+
         cart = Cart.objects.filter(pk = pk).first()
         if not cart:
             return Response({"status":f"cart not found"} , status=status.HTTP_404_NOT_FOUND)
 
+        pay_on_delivery = False
+        bank = None
+        emi = False
+        if request.data.get("bank") :
+            bank = Bank.objects.filter(bank = request.data.get("bank")).first() 
+            bank = bank.pk
+            if request.data.get("emi") == "True":
+                emi = True
+
+        elif request.data.get("pay_on_delivery") == "True":
+            pay_on_delivery = True
+            
+        else:
+            return Response({"status":f"Choose at least one of them ( bank or pay on delivery )"} , status=status.HTTP_403_FORBIDDEN)
+
         data = {
-            "user": request.user.pk,
-            "product" : cart.product.pk
-        }
+                "user": request.user.pk,
+                "product" : cart.product.pk,
+                "pay_on_delivery" : pay_on_delivery,
+                "bank":bank,
+                "emi" : emi
+            }
         serializer = OrderSerializer(data = data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        product_name = cart.product.name
         cart.delete()
-        
-        return Response({"status":f"{product_name} is ordered"} , status=status.HTTP_201_CREATED)
+        return Response({"status":f"{serializer.validated_data.get('discounted_price')} Rs. is paid from customer"} , status=status.HTTP_201_CREATED)
 
 
 class FindProduct(APIView):
