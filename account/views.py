@@ -20,9 +20,9 @@ import string
 
 
 # sending message to client
-# account_sid = os.environ.get("account_sid") 
-# auth_token = os.environ.get("auth_token") 
-# client = Client(account_sid, auth_token)
+account_sid = ""
+auth_token = ""
+client = Client(account_sid, auth_token)
 
 def generate_otp(mobile_no ):
     try:
@@ -31,12 +31,12 @@ def generate_otp(mobile_no ):
         for i in range(4):
             otp+=str(random.randint(1,9))
 
-        # message = client.messages \
-        #     .create(
-        #         body=f'Its from Ongraph your code is {otp}',
-        #         from_='+17817904373',
-        #         to='+91'+mobile_no
-        # )
+        message = client.messages \
+            .create(
+                body=f'Its from Ongraph your code is {otp}',
+                from_='+17817904373',
+                to='+91'+mobile_no
+        )
         return otp
     except: 
         return "NOT OK"

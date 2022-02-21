@@ -64,6 +64,16 @@ class OrderSerializer(serializers.ModelSerializer):
         if data.get("pay_on_delivery") == True:
             cost = product.price
 
+        # discount of 250 rs. for first time purchase
+        order = user.order.all()
+        print(order)
+        if len(order) == 0:
+            if product.price < 250:
+                cost = 0
+            else:
+                cost = cost - 250
+
+        
         
         data["discounted_price"] = cost
         product.stock -= 1
